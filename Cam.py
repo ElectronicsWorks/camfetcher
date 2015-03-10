@@ -81,7 +81,7 @@ class Cam:
                             f = "%s/%s" % (root, name)
                             ima.append((f, float(ti+float(usec)/1000000)))
                 ti += 1
-            self.log.debug("[%s]: images for chunk [%s]" % (self.name, ima))
+            # self.log.debug("[%s]: images for chunk [%s]" % (self.name, ima))
             # make links to images to make chunks
             t = float(t)
             ti = float(t - self.chunk_size)
