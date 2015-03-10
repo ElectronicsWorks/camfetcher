@@ -1,4 +1,5 @@
 
+import os
 # https://developer.apple.com/library/ios/technotes/tn2288/_index.html
 
 class m3u8:
@@ -16,9 +17,12 @@ class m3u8:
             self.media_sequence += 1
 
     def write(self):
-        f = open(self.fname, "w")
+        tmpfname = self.fname+".tmp"
+        f = open(tmpfname, "w")
         f.write(self.str())
         f.close()
+        os.rename(tmpfname, self.fname)
+
 
     def str(self):
         out = []
