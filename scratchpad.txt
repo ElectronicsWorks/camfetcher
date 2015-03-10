@@ -1,3 +1,5 @@
 curl -s "http://foscam.home.lan/videostream.cgi?user=visitor&pwd=visitor&rate=11" | ./mjpeg2jpg - ./raw
 
 curl --socks5-hostname localhost:1082 -s "http://ipcamera2.home.lan:81/videostream.cgi?loginuse=admin&loginpas="
+
+test
