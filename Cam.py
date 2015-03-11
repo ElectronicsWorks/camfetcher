@@ -115,9 +115,13 @@ class Cam:
                 i += 1
             # generate chunk with ffmpeg
             gmt = time.gmtime(t)
+            chunkdir = "%04d-%02d-%02d_%02d" % (gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour)
             chunkname = "%04d-%02d-%02d_%02d-%02d-%02d.ts" % (gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec)
-            chunkfullpath = "%s/%s" % (self.chunks_path, chunkname)
-            chunkwebpath = "%s/%s" % (self.webpath_chunks_prefix, chunkname)
+            chunkdirpath = "%s/%s" % (self.chunks_path, chunkdir)
+            chunkfullpath = "%s/%s" % (chunkdirpath, chunkname)
+            chunkwebpath = "%s/%s/%s" % (self.webpath_chunks_prefix, chunkdir, chunkname)
+            # make chunk dir if not exists
+            Cam.mkdir(chunkdirpath)
             frames = len(outim)
             wtime = time.localtime(t)
             ptso = wtime.tm_hour*3600 + wtime.tm_min*60 + wtime.tm_sec
