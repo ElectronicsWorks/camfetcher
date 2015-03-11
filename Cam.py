@@ -67,11 +67,14 @@ class Cam:
             ti = t - self.chunk_size
             period = 1 / float(self.fps)
             # make IMage Array index -> (imagetime, imagename)
+            # save directories for removal
+            imad = []
             ima = []
             while ti < t:
                 # convert ti in gmtime and directory
                 gmt = time.gmtime(ti)
                 ddir = "%s/%04d/%02d/%02d/%02d/%02d/%02d" % (self.raw, gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec)
+                imad.append(ddir)
                 # self.log.debug("[%s]: directory for sec %d: [%s]" % (self.name, ti, ddir))
                 for root, dirs, files in os.walk(ddir):
                     for name in files:
@@ -134,6 +137,11 @@ class Cam:
                 if os.path.exists(imax):
                     # self.log.debug("[%s]: removing : [%s]" % (self.name, imax))
                     os.remove(imax)
+            # remove dirs
+            for dirname in imad:
+                if os.path.exists(dirname):
+                    # self.log.debug("[%s]: removing dir: [%s]" % (self.name, dirname))
+                    os.rmdir(dirname)
 
             while True:
                 t = int(time.time())
