@@ -237,7 +237,7 @@ main(int argc,char * argv[])
 						if(where>=2000000000)largefile=TRUE;
 						if(!largefile)
 						{
-							printf("picture/videoblock %9d with %9d bytes. Src at %ld\n",picturenumber,nbuffer,ftell(src));
+							// printf("picture/videoblock %9d with %9d bytes. Src at %ld\n",picturenumber,nbuffer,ftell(src));
 						}
 					}
 					if(largefile)
@@ -439,7 +439,7 @@ Writedata(void)
 
   fn = getfname(destfname);
   //sprintf (fn,"%s/%s",destfname, fname);
-  printf ("\t%s\n",fn);
+  // printf ("\t%s\n",fn);
 	dest=fopen(fn,"ab");
 	if(dest)
 	{

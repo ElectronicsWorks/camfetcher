@@ -72,12 +72,12 @@ class Cam:
                 # convert ti in gmtime and directory
                 gmt = time.gmtime(ti)
                 ddir = "%s/%04d/%02d/%02d/%02d/%02d/%02d" % (self.raw, gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec)
-                self.log.debug("[%s]: directory for sec %d: [%s]" % (self.name, ti, ddir))
+                # self.log.debug("[%s]: directory for sec %d: [%s]" % (self.name, ti, ddir))
                 for root, dirs, files in os.walk(ddir):
                     for name in files:
                         if name.endswith(".jpg"):
                             usec = int(name[:-4])
-                            self.log.debug("[%s]: found FILE [%s], usec [%d]" % (self.name, name, usec))
+                            # self.log.debug("[%s]: found FILE [%s], usec [%d]" % (self.name, name, usec))
                             f = "%s/%s" % (root, name)
                             ima.append((f, float(ti+float(usec)/1000000)))
                 ti += 1
@@ -118,7 +118,7 @@ class Cam:
             frames = len(outim)
             wtime = time.localtime(t)
             ptso = wtime.tm_hour*3600 + wtime.tm_min*60 + wtime.tm_sec
-            cmd = "ffmpeg -y -v verbose -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
+            cmd = "ffmpeg -loglevel panic -y -v verbose -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
                   "-vf setpts=PTS+%d/TB," \
                   "drawbox=t=20:x=0:y=0:width=200:height=30:color=black@0.5," \
                   "drawtext=\"fontfile=%s:expansion=normal:text=%%{pts\\\\\\:hms}:y=10:x=10:fontcolor=yellow\" " \
