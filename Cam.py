@@ -66,7 +66,7 @@ class Cam:
             self.log.debug("[%s]: chunk [%d]" % (self.name, t))
             ti = t - self.chunk_size
             period = 1 / float(self.fps)
-            # make image array index -> (imagetime, imagename)
+            # make IMage Array index -> (imagetime, imagename)
             ima = []
             while ti < t:
                 # convert ti in gmtime and directory
@@ -82,7 +82,7 @@ class Cam:
                             ima.append((f, float(ti+float(usec)/1000000)))
                 ti += 1
             # self.log.debug("[%s]: images for chunk [%s]" % (self.name, ima))
-            # make links to images to make chunks
+            # links to images to make chunks
             t = float(t)
             ti = float(t - self.chunk_size)
             outim = []
@@ -104,11 +104,11 @@ class Cam:
             # self.log.debug("[%s]: ordered images for chunk [%s]" % (self.name, outim))
             # now gen symlink in tmp dir
             i = 0
-            for ima in outim:
+            for imax in outim:
                 tmpfname = "%s/%d.jpg" % (self.tempdir, i)
                 if os.path.lexists(tmpfname):
                     os.remove(tmpfname)
-                os.symlink(ima, tmpfname)
+                os.symlink(imax, tmpfname)
                 i += 1
             # generate chunk with ffmpeg
             gmt = time.gmtime(t)
@@ -126,9 +126,14 @@ class Cam:
                   "%s" % (self.fps, self.tempdir, frames, ptso, self.font, self.ffmpeg_options, chunkfullpath)
             self.log.debug("[%s]: ffmpeg cmd: [%s]" % (self.name, cmd))
             os.system(cmd)
-            # aggiorna file m3u8
+            # update m3u8
             self.m3u8.addstream(chunkwebpath)
             self.m3u8.write()
+            # remove work images
+            for imax, imt in ima:
+                if os.path.exists(imax):
+                    # self.log.debug("[%s]: removing : [%s]" % (self.name, imax))
+                    os.remove(imax)
 
             while True:
                 t = int(time.time())
