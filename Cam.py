@@ -2,7 +2,11 @@ import os
 import logging
 import time
 from multiprocessing import Process
-import subprocess
+import threading
+import re
+import datetime
+import pytz
+import shutil
 from m3u8 import m3u8
 
 
@@ -158,18 +162,56 @@ class Cam:
         cmd = "curl %s -s \"%s\" | ./mjpeg2jpg/mjpeg2jpg - %s" % (self.curl_options, self.url, self.raw)
         self.log.debug("[%s]: mjpeg_fetcher [%s] started" % (self.name, cmd))
         #proc = subprocess.Popen(cmd, shell=True)
-        os.system(cmd)
+        while True:
+            os.system(cmd)
+            time.sleep(10)
 
     def do_mjpeg(self):
         self.log.debug("[%s]: do_mjpeg" % self.name)
         # run background mjpeg2 executable
-        p = Process(target=self.mjpeg_fetcher)
-        p.start()
+        ## p = Process(target=self.mjpeg_fetcher)
+        ## p.start()
+        threading.Thread(target=self.mjpeg_fetcher).start()
+        # run garbage collector
+        threading.Thread(target=self.garbage_collector).start()
         # chunks
         try:
             self.do_chunks()
         except:
-            self.log.exception("[%s]:" % (self.name))
+            self.log.exception("[%s]:" % self.name)
+
+    # remove chunks
+    def garbage_collector(self):
+        dir_re = re.compile("([\d]{4})-([\d]{2})-([\d]{2})_([\d]{2})")
+        utcnow = datetime.datetime.now(tz=pytz.timezone("GMT"))
+        tdref = datetime.timedelta(hours=self.hours)
+        self.log.debug("[%s]: os.walk dir utcnow [%s], tdref [%s]" % (self.name, utcnow, tdref))
+        while True:
+            # scan chunk dir
+            for dirpath, dirnames, files in os.walk(self.chunks_path):
+                # self.log.debug("[%s]: os.walk [%s] [%s] [%s]" % (self.name, dirpath, dirnames, files))
+                for dirname in dirnames:
+                    # dirname format is: AAAA-MM-DD_HH e.g. 2015-03-11_14
+                    match = dir_re.match(dirname)
+                    if match:
+                        fullpath = os.path.join(dirpath, dirname)
+                        self.log.debug("[%s]: os.walk match dir [%s] [%s]" % (self.name, dirname, fullpath))
+                        yyyy = int(match.group(1))
+                        mm = int(match.group(2))
+                        dd = int(match.group(3))
+                        hh = int(match.group(4))
+                        ddt = datetime.datetime(yyyy, mm, dd, hh, tzinfo=pytz.timezone("GMT"))
+                        td = utcnow - ddt
+                        self.log.debug("[%s]: os.walk dir datetime [%s] delta [%s]" % (self.name, ddt, td))
+                        if td > tdref:
+                            self.log.debug("[%s]: os.walk dir to delete [%s]" % (self.name, fullpath))
+                            try:
+                                shutil.rmtree(fullpath)
+                            except:
+                                self.log.exception("[%s] - exception removing tree" % self.name)
+
+            time.sleep(self.hours*360)
+
 
     def start(self):
         self.log.debug("[%s]: started" % self.name)

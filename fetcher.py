@@ -82,6 +82,10 @@ if __name__ == "__main__":
             url = config.get(section, "url")
             log.info("[%s] - url [%s]" % (cam_name, url))
 
+            hist_size = config.getint(section, "hist_size")
+            log.info("[%s] - hist_size  [%d] " % (cam_name, hist_size))
+
+
             curl_options = ""
             if config.has_option(section, "curl_options"):
                 curl_options = config.get(section, "curl_options")
@@ -123,7 +127,7 @@ if __name__ == "__main__":
 
             cam = Cam(cam_name, url, source_type, raw, chunks_path, fps=fps, chunks=m3u8_chunks, chunk_size=chunk_size,
                       m3u8_path=m3u8_path, webpath_chunks_prefix=webpath_chunks_prefix, logger=log, tempdir=tempdir,
-                      curl_options=curl_options, font=font, ffmpeg_options=ffmpeg_options)
+                      curl_options=curl_options, font=font, ffmpeg_options=ffmpeg_options, hours=hist_size)
             cams.append(cam)
 
     # launch a Process for each cam
