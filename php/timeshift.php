@@ -22,7 +22,7 @@
   $thetime = getParameterValue ($_GET,'time');
   $id = getParameterValue ($_GET,'id','tetto');
     // call m3u8.php and fetch redirector
-  $out = exec ("curl -s -D - \"http://casa2.zellini.net/live/m3u8.php?time=${thetime}&datetime=${datetime}&id=${id}\" | grep Location");
+  $out = exec ("curl -s -D - \"http://myip/live/m3u8.php?time=${thetime}&datetime=${datetime}&id=${id}\" | grep Location");
   // extract location
   if (preg_match ( "/^Location: (.*)/" , $out,$arr)){
     $url = $arr[1];
