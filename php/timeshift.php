@@ -1,9 +1,9 @@
 <?php
-  header("Cache-Control: no-cache, must-revalidate");
+  header("Cache-Control: no-cache, must-revalidate"); 
   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
 
-  function getParameterValue ($params,$name,$default=null){
+  function getParameterValue ($params,$name,$default=null){  
     $value=$default;
     if ($params){
       if (array_key_exists ($name,$params)){
@@ -11,7 +11,7 @@
           $value = $params[$name];
         }
       }
-    }
+    } 
     return $value;
   }
 
@@ -22,7 +22,12 @@
   $thetime = getParameterValue ($_GET,'time');
   $id = getParameterValue ($_GET,'id','tetto');
     // call m3u8.php and fetch redirector
-  $out = exec ("curl -s -D - \"http://myip/live/m3u8.php?time=${thetime}&datetime=${datetime}&id=${id}\" | grep Location");
+
+  $base = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];    
+  $ar = parse_url ($base);
+//  print_r ($ar); die;
+
+  $out = exec ("curl -s -D - \"http://".$ar['host']."/live/m3u8.php?time=${thetime}&datetime=${datetime}&id=${id}\" | grep Location");
   // extract location
   if (preg_match ( "/^Location: (.*)/" , $out,$arr)){
     $url = $arr[1];
@@ -32,7 +37,7 @@
 <!doctype html>
 <html>
 <head>
-
+    
     <title>Flash HLS Live : Flowplayer</title>
 
     <link rel="shortcut icon" href="http://flash.flowplayer.org/favicon.ico">
@@ -55,7 +60,7 @@
             box-shadow: none;
         }
     </style>
-
+    
     <!-- flowplayer javascript component -->
     <script src="http://releases.flowplayer.org/js/flowplayer-3.2.13.min.js"></script>
 
@@ -79,7 +84,7 @@
 
 <!-- container with splash image -->
 <div id="player">
-
+    
 </div>
 
 <script>
@@ -107,7 +112,7 @@ flowplayer("player", 'flowplayer-3.2.18.swf', {
     clip: {
         url: "<?=$url?>",
         live: true,
-
+        
         // configure the flashls plugin as the clip's provider and urlResolver
         provider: "flashls",
         urlResolvers: "flashls",
