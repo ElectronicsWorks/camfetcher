@@ -145,11 +145,11 @@ class Cam:
             wtime = time.localtime(t)
             ptso = wtime.tm_hour*3600 + wtime.tm_min*60 + wtime.tm_sec
             cmd = "ffmpeg -loglevel panic -y -v verbose -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
-                  "-vf setpts=PTS+%d/TB," \
-                  "drawbox=t=20:x=0:y=0:width=200:height=30:color=black@0.5," \
-                  "drawtext=\"fontfile=%s:expansion=normal:text=%%{pts\\\\\\:hms}:y=10:x=10:fontcolor=yellow\" " \
+                  "-vf setpts=PTS+%d/TB,drawbox=t=20:x=0:y=0:width=120:height=30:color=black@0.5," \
+                  "drawtext=\"fontfile=%s:text=%02d\\\\\\:%02d\\\\\\:%d%%{expr_int_format\\\\\\:n/5\\\\\\:u\\\\\\:1}.%%{expr_int_format\\\\\\:mod(n\,5)*2\\\\\\:u\\\\\\:1}00:y=10:x=10:fontcolor=yellow\" " \
                   "%s " \
-                  "%s" % (self.fps, self.tempdir, frames, ptso, self.font, self.ffmpeg_options, chunkfullpath)
+                  "%s" % (self.fps, self.tempdir, frames, ptso, self.font, wtime.tm_hour, wtime.tm_min, int(wtime.tm_sec/10), self.ffmpeg_options, chunkfullpath)
+
             self.log.debug("[%s]: ffmpeg cmd: [%s]" % (self.name, cmd))
             os.system(cmd)
             # update m3u8
