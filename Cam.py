@@ -182,7 +182,7 @@ class Cam:
             self.pid = proc.pid
             proc.wait()
             # os.system(cmd)
-            time.sleep(5)
+            time.sleep(2)
 
     def do_mjpeg(self):
         self.log.debug("[%s]: do_mjpeg" % self.name)
