@@ -95,8 +95,9 @@ class Cam:
                 if self.pid:
                     self.log.warning("[%s]  killing pid [%d]" % (self.name, self.pid))
                     try:
-                        import signal
-                        os.kill(self.pid, signal.SIGTERM) # SIGKILL ?
+                        os.system("pkill -P %d" % self.pid)
+                        os.system("pkill %d" % self.pid)
+                        # os.kill(self.pid, signal.SIGTERM) # SIGKILL ?
                     except:
                         self.log.exception("[%s]  while killing pid [%d]" % (self.name, self.pid))
 
