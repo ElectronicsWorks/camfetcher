@@ -1,7 +1,7 @@
 import os
 import logging
 import time
-from multiprocessing import Process
+import subprocess
 import threading
 import re
 import datetime
@@ -59,6 +59,7 @@ class Cam:
         Cam.mkdir(self.tempdir)
         Cam.mkdir(self.chunks_path)
         self.log = logger
+        self.pid = None
 
     def do_chunks(self):
         # wait for chunk_size
@@ -67,7 +68,7 @@ class Cam:
             if t % self.chunk_size:
                 time.sleep(.1)
                 continue
-            self.log.debug("[%s]: chunk [%d]" % (self.name, t))
+            self.log.debug("[%s]: chunk [%d] fetcher pid [%s]" % (self.name, t, self.pid))
             ti = t - self.chunk_size
             period = 1 / float(self.fps)
             # make IMage Array index -> (imagetime, imagename)
@@ -90,6 +91,19 @@ class Cam:
                 ti += 1
             # self.log.debug("[%s]: images for chunk [%s]" % (self.name, ima))
             # links to images to make chunks
+            if not len(ima):
+                if self.pid:
+                    self.log.warning("[%s]  killing pid [%d]" % (self.name, self.pid))
+                    try:
+                        import signal
+                        os.kill(self.pid, signal.SIGTERM) # SIGKILL ?
+                    except:
+                        self.log.exception("[%s]  while killing pid [%d]" % (self.name, self.pid))
+
+                    self.pid = None
+                    time.sleep(1)
+                    continue
+
             t = float(t)
             ti = float(t - self.chunk_size)
             outim = []
@@ -157,14 +171,17 @@ class Cam:
                     break
                 time.sleep(.1)
 
-
     def mjpeg_fetcher(self):
         cmd = "curl %s -s \"%s\" | ./mjpeg2jpg/mjpeg2jpg - %s" % (self.curl_options, self.url, self.raw)
         self.log.debug("[%s]: mjpeg_fetcher [%s] started" % (self.name, cmd))
-        #proc = subprocess.Popen(cmd, shell=True)
+
         while True:
-            os.system(cmd)
-            time.sleep(10)
+            proc = subprocess.Popen(cmd, shell=True)
+            self.log.info("[%s] - spawned pid [%d]" % (self.name, proc.pid))
+            self.pid = proc.pid
+            proc.wait()
+            # os.system(cmd)
+            time.sleep(5)
 
     def do_mjpeg(self):
         self.log.debug("[%s]: do_mjpeg" % self.name)
