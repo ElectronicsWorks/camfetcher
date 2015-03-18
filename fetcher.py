@@ -22,29 +22,6 @@ if __name__ == "__main__":
 
     configFile = "fetcher.ini"
 
-    logDir = os.environ['HOME'] + "/logs"
-    if os.path.exists(logDir):
-        if not os.path.isdir(logDir):
-            print "logDir [%s] must be a directory" % logDir
-            sys.exit(1)
-    else:
-        os.mkdir(logDir)
-        print "logDir [%s] created" % logDir
-
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
-    logName = logDir+"/fetcher.log"
-    log = logging.getLogger("fetcher")
-    log.setLevel(logging.DEBUG)
-    fh = logging.handlers.TimedRotatingFileHandler(filename=logName, when="midnight", interval=1, backupCount=5)
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    log.addHandler(fh)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
-
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hc:", ["help", "config="])
     except getopt.GetoptError:
@@ -63,10 +40,28 @@ if __name__ == "__main__":
 
     # read and parse config file
 
-    log.info("started!")
-
     config = ConfigParser.SafeConfigParser()
     config.read(configFile)
+
+    # log stuffs
+    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
+    # main log
+    # logDir = os.environ['HOME'] + "/logs"
+    logDir = config.get("globals", "logdir")
+    logName = logDir+"/fetcher.log"
+    Cam.mkdir(logDir)
+    log = logging.getLogger("fetcher")
+    log.setLevel(logging.DEBUG)
+    fh = logging.handlers.TimedRotatingFileHandler(filename=logName, when=config.get("globals", "rotate"), interval=1, backupCount=5)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    log.addHandler(fh)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+    log.info("started!")
 
     cams = []
     for section in config.sections():
@@ -79,12 +74,32 @@ if __name__ == "__main__":
                 log.info("[%s] - not added to fetch list ( not enabled in config file)" % cam_name)
                 continue
 
+            # private logger for this camera
+
+            formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
+            # main log
+            # logDir = os.environ['HOME'] + "/logs"
+            logDir = config.get(section, "logdir")
+            logName = logDir+"/fetcher.log"
+            Cam.mkdir(logDir)
+            log = logging.getLogger(cam_name)
+            log.setLevel(logging.DEBUG)
+            fh = logging.handlers.TimedRotatingFileHandler(filename=logName, when=config.get(section, "rotate"), interval=1, backupCount=5)
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            log.addHandler(fh)
+
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            ch.setFormatter(formatter)
+            log.addHandler(ch)
+            log.info("started!")
+
             url = config.get(section, "url")
             log.info("[%s] - url [%s]" % (cam_name, url))
 
             hist_size = config.getint(section, "hist_size")
             log.info("[%s] - hist_size  [%d] " % (cam_name, hist_size))
-
 
             curl_options = ""
             if config.has_option(section, "curl_options"):

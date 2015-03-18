@@ -230,7 +230,6 @@ class Cam:
 
             time.sleep(self.hours*360)
 
-
     def start(self):
         self.log.debug("[%s]: started" % self.name)
         # type check
@@ -239,6 +238,4 @@ class Cam:
             getattr(self, fname)()
         else:
             self.log.error("[%s]: type not managed" % self.name, self.source_type)
-
-
 
