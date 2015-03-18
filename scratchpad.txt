@@ -11,3 +11,8 @@ sudo mkdir /mnt/tmpfs
 sudo chown fabrizio:fabrizio /mnt/tmpfs
 sudo mount -o size=128M -t tmpfs none /mnt/tmpfs
 
+
+TODO:
+better logger
+https://docs.python.org/dev/howto/logging-cookbook.html#logging-to-a-single-file-from-multiple-processes
+
