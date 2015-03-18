@@ -44,7 +44,7 @@ if __name__ == "__main__":
     config.read(configFile)
 
     # log stuffs
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(fmt='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s')
     # main log
     # logDir = os.environ['HOME'] + "/logs"
     logDir = config.get("globals", "logdir")
@@ -73,27 +73,6 @@ if __name__ == "__main__":
             else:
                 log.info("[%s] - not added to fetch list ( not enabled in config file)" % cam_name)
                 continue
-
-            # private logger for this camera
-
-            formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s')
-            # main log
-            # logDir = os.environ['HOME'] + "/logs"
-            logDir = config.get(section, "logdir")
-            logName = logDir+"/fetcher.log"
-            Cam.mkdir(logDir)
-            log = logging.getLogger(cam_name)
-            log.setLevel(logging.DEBUG)
-            fh = logging.handlers.TimedRotatingFileHandler(filename=logName, when=config.get(section, "rotate"), interval=1, backupCount=5)
-            fh.setLevel(logging.DEBUG)
-            fh.setFormatter(formatter)
-            log.addHandler(fh)
-
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.DEBUG)
-            ch.setFormatter(formatter)
-            log.addHandler(ch)
-            log.info("started!")
 
             url = config.get(section, "url")
             log.info("[%s] - url [%s]" % (cam_name, url))
@@ -145,14 +124,16 @@ if __name__ == "__main__":
                       curl_options=curl_options, font=font, ffmpeg_options=ffmpeg_options, hours=hist_size)
             cams.append(cam)
 
-    # launch a Process for each cam
+    # launch a Thread for each cam
 
-    processes = []
+    threads = []
     for cam in cams:
-        p = Process(target=cam.start)
-        p.start()
-        processes.append(p)
+        import threading
+        t = threading.Thread(target=cam.start, name=cam.name)
+        # p = Process(target=cam.start)
+        # p.start()
+        t.start()
+        threads.append(t)
 
-    for p in processes:
-        p.join()
-
+    for t in threads:
+        t.join()

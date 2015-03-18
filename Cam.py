@@ -68,7 +68,7 @@ class Cam:
             if t % self.chunk_size:
                 time.sleep(.1)
                 continue
-            self.log.debug("[%s]: chunk [%d] fetcher pid [%s]" % (self.name, t, self.pid))
+            self.log.debug("chunk [%d] fetcher pid [%s]" % (t, self.pid))
             ti = t - self.chunk_size
             period = 1 / float(self.fps)
             # make IMage Array index -> (imagetime, imagename)
@@ -93,13 +93,13 @@ class Cam:
             # links to images to make chunks
             if not len(ima):
                 if self.pid:
-                    self.log.warning("[%s]  killing pid [%d]" % (self.name, self.pid))
+                    self.log.warning("killing pid [%d]" % self.pid)
                     try:
                         os.system("pkill -P %d" % self.pid)
                         os.system("pkill %d" % self.pid)
                         # os.kill(self.pid, signal.SIGTERM) # SIGKILL ?
                     except:
-                        self.log.exception("[%s]  while killing pid [%d]" % (self.name, self.pid))
+                        self.log.exception("while killing pid [%d]" % self.pid)
 
                     self.pid = None
                     time.sleep(1)
@@ -150,7 +150,7 @@ class Cam:
                   "%s " \
                   "%s" % (self.fps, self.tempdir, frames, ptso, self.font, wtime.tm_hour, wtime.tm_min, int(wtime.tm_sec/10), self.ffmpeg_options, chunkfullpath)
 
-            self.log.debug("[%s]: ffmpeg cmd: [%s]" % (self.name, cmd))
+            self.log.debug("ffmpeg cmd: [%s]" % cmd)
             os.system(cmd)
             # update m3u8
             self.m3u8.addstream(chunkwebpath)
@@ -174,36 +174,36 @@ class Cam:
 
     def mjpeg_fetcher(self):
         cmd = "curl %s -s \"%s\" | ./mjpeg2jpg/mjpeg2jpg - %s" % (self.curl_options, self.url, self.raw)
-        self.log.debug("[%s]: mjpeg_fetcher [%s] started" % (self.name, cmd))
+        self.log.debug("mjpeg_fetcher [%s] started" % cmd)
 
         while True:
             proc = subprocess.Popen(cmd, shell=True)
-            self.log.info("[%s] - spawned pid [%d]" % (self.name, proc.pid))
+            self.log.info("spawned pid [%d]" % proc.pid)
             self.pid = proc.pid
             proc.wait()
             # os.system(cmd)
             time.sleep(2)
 
     def do_mjpeg(self):
-        self.log.debug("[%s]: do_mjpeg" % self.name)
+        self.log.debug("do_mjpeg start")
         # run background mjpeg2 executable
         ## p = Process(target=self.mjpeg_fetcher)
         ## p.start()
-        threading.Thread(target=self.mjpeg_fetcher).start()
+        threading.Thread(target=self.mjpeg_fetcher, name=self.name+".mjpeg_fetcher").start()
         # run garbage collector
-        threading.Thread(target=self.garbage_collector).start()
+        threading.Thread(target=self.garbage_collector, name=self.name+".garbage_collector").start()
         # chunks
         try:
             self.do_chunks()
         except:
-            self.log.exception("[%s]:" % self.name)
+            self.log.exception("doing chunks")
 
     # remove chunks
     def garbage_collector(self):
         dir_re = re.compile("([\d]{4})-([\d]{2})-([\d]{2})_([\d]{2})")
         utcnow = datetime.datetime.now(tz=pytz.timezone("GMT"))
         tdref = datetime.timedelta(hours=self.hours)
-        self.log.debug("[%s]: os.walk dir utcnow [%s], tdref [%s]" % (self.name, utcnow, tdref))
+        self.log.debug("os.walk dir utcnow [%s], tdref [%s]" % (utcnow, tdref))
         while True:
             # scan chunk dir
             for dirpath, dirnames, files in os.walk(self.chunks_path):
@@ -213,29 +213,29 @@ class Cam:
                     match = dir_re.match(dirname)
                     if match:
                         fullpath = os.path.join(dirpath, dirname)
-                        self.log.debug("[%s]: os.walk match dir [%s] [%s]" % (self.name, dirname, fullpath))
+                        self.log.debug("os.walk match dir [%s] [%s]" % (dirname, fullpath))
                         yyyy = int(match.group(1))
                         mm = int(match.group(2))
                         dd = int(match.group(3))
                         hh = int(match.group(4))
                         ddt = datetime.datetime(yyyy, mm, dd, hh, tzinfo=pytz.timezone("GMT"))
                         td = utcnow - ddt
-                        self.log.debug("[%s]: os.walk dir datetime [%s] delta [%s]" % (self.name, ddt, td))
+                        self.log.debug("os.walk dir datetime [%s] delta [%s]" % (ddt, td))
                         if td > tdref:
-                            self.log.debug("[%s]: os.walk dir to delete [%s]" % (self.name, fullpath))
+                            self.log.debug("os.walk dir to delete [%s]" % fullpath)
                             try:
                                 shutil.rmtree(fullpath)
                             except:
-                                self.log.exception("[%s] - exception removing tree" % self.name)
+                                self.log.exception("exception removing tree")
 
             time.sleep(self.hours*360)
 
     def start(self):
-        self.log.debug("[%s]: started" % self.name)
+        self.log.debug("started")
         # type check
         fname = "do_"+self.source_type
         if hasattr(self, fname):
             getattr(self, fname)()
         else:
-            self.log.error("[%s]: type not managed" % self.name, self.source_type)
+            self.log.error("type [%s] not managed" % self.source_type)
 
