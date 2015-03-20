@@ -201,10 +201,11 @@ class Cam:
     # remove chunks
     def garbage_collector(self):
         dir_re = re.compile("([\d]{4})-([\d]{2})-([\d]{2})_([\d]{2})")
-        utcnow = datetime.datetime.now(tz=pytz.timezone("GMT"))
-        tdref = datetime.timedelta(hours=self.hours)
-        self.log.debug("os.walk dir utcnow [%s], tdref [%s]" % (utcnow, tdref))
         while True:
+            utcnow = datetime.datetime.now(tz=pytz.timezone("GMT"))
+            tdref = datetime.timedelta(hours=self.hours)
+            self.log.debug("os.walk dir utcnow [%s], tdref [%s]" % (utcnow, tdref))
+
             # scan chunk dir
             for dirpath, dirnames, files in os.walk(self.chunks_path):
                 # self.log.debug("[%s]: os.walk [%s] [%s] [%s]" % (self.name, dirpath, dirnames, files))
