@@ -13,6 +13,17 @@ sudo mount -o size=128M -t tmpfs none /mnt/tmpfs
 
 
 TODO:
+ffmpeg mpjpeg format frontend
+ex.
+ffmpeg  -y -i rtsp://h264-2/ch0_unicast_firststream -qscale 2 -f mpjpeg test.mjpg
+
 better logger
 https://docs.python.org/dev/howto/logging-cookbook.html#logging-to-a-single-file-from-multiple-processes
 
+load rtsp stream
+https://code.google.com/p/python-mjpeg-over-rtsp-client/downloads/detail?name=rtsp_mjpeg_client-0.1.zip&can=2&q=
+
+vlc python
+https://wiki.videolan.org/Python_bindings#Usage
+
+http://blog.mikemccandless.com/2013/11/pulling-h264-video-from-ip-camera-using.html

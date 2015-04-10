@@ -144,7 +144,7 @@ class Cam:
             frames = len(outim)
             wtime = time.localtime(t)
             ptso = wtime.tm_hour*3600 + wtime.tm_min*60 + wtime.tm_sec
-            cmd = "ffmpeg -loglevel panic -y -v verbose -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
+            cmd = "ffmpeg -loglevel panic -y -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
                   "-vf setpts=PTS+%d/TB,drawbox=t=20:x=0:y=0:width=120:height=30:color=black@0.5," \
                   "drawtext=\"fontfile=%s:text=%02d\\\\\\:%02d\\\\\\:%d%%{expr_int_format\\\\\\:n/5\\\\\\:u\\\\\\:1}.%%{expr_int_format\\\\\\:mod(n\,5)*2\\\\\\:u\\\\\\:1}00:y=10:x=10:fontcolor=yellow\" " \
                   "%s " \
@@ -187,8 +187,8 @@ class Cam:
     def do_mjpeg(self):
         self.log.debug("do_mjpeg start")
         # run background mjpeg2 executable
-        ## p = Process(target=self.mjpeg_fetcher)
-        ## p.start()
+        # p = Process(target=self.mjpeg_fetcher)
+        # p.start()
         threading.Thread(target=self.mjpeg_fetcher, name=self.name+".mjpeg_fetcher").start()
         # run garbage collector
         threading.Thread(target=self.garbage_collector, name=self.name+".garbage_collector").start()
@@ -197,6 +197,34 @@ class Cam:
             self.do_chunks()
         except:
             self.log.exception("doing chunks")
+
+    def ffmpeg_fetcher(self):
+        cmd = "ffmpeg -loglevel panic -i \"%s\" -qscale 4 -f mpjpeg - | ./mjpeg2jpg/mjpeg2jpg - %s" % (self.url, self.raw)
+        self.log.debug("ffmpeg_fetcher [%s] started" % cmd)
+
+        while True:
+            proc = subprocess.Popen(cmd, shell=True)
+            self.log.info("spawned pid [%d]" % proc.pid)
+            self.pid = proc.pid
+            proc.wait()
+            # os.system(cmd)
+            time.sleep(2)
+
+    def do_ffmpeg(self):
+        self.log.debug("do_ffmpeg start")
+        # run background mjpeg2 executable
+        # p = Process(target=self.mjpeg_fetcher)
+        # p.start()
+        threading.Thread(target=self.ffmpeg_fetcher, name=self.name+".ffmpeg_fetcher").start()
+        # run garbage collector
+        threading.Thread(target=self.garbage_collector, name=self.name+".garbage_collector").start()
+        # chunks
+        try:
+            self.do_chunks()
+        except:
+            self.log.exception("doing chunks")
+
+
 
     # remove chunks
     def garbage_collector(self):
