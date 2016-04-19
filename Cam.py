@@ -30,7 +30,15 @@ class Cam:
             return logging.getLogger(self.name)
 
     def __init__(self, name, url, source_type, raw, chunks_path, fps=5, chunk_size=10, chunks=3, hours=24, logger=None,
-                 tempdir=None, m3u8_path=None, webpath_chunks_prefix="", font=None, curl_options="", ffmpeg_options=None):
+                 tempdir=None, m3u8_path=None, webpath_chunks_prefix="", font=None, curl_options="",
+                 ffmpeg_options=None, ffmpeg_prefilter=None):
+
+        if ffmpeg_prefilter is None:
+            ffmpeg_prefilter = ""
+        else:
+            ffmpeg_prefilter += ","
+
+        self.ffmpeg_prefilter = ffmpeg_prefilter
 
         if ffmpeg_options is None:
             ffmpeg_options = "-c:v libx264 -crf 18 -profile:v baseline -maxrate 128k -bufsize 256k -pix_fmt yuv420p"
@@ -145,10 +153,10 @@ class Cam:
             wtime = time.localtime(t)
             ptso = wtime.tm_hour*3600 + wtime.tm_min*60 + wtime.tm_sec
             cmd = "ffmpeg -loglevel panic -y -framerate %d  -start_number 0 -i \"%s/%%d.jpg\" -frames %d " \
-                  "-vf setpts=PTS+%d/TB,drawbox=t=20:x=0:y=0:width=120:height=30:color=black@0.5," \
+                  "-vf %ssetpts=PTS+%d/TB,drawbox=t=20:x=0:y=0:width=120:height=30:color=black@0.5," \
                   "drawtext=\"fontfile=%s:text=%02d\\\\\\:%02d\\\\\\:%d%%{expr_int_format\\\\\\:n/5\\\\\\:u\\\\\\:1}.%%{expr_int_format\\\\\\:mod(n\,5)*2\\\\\\:u\\\\\\:1}00:y=10:x=10:fontcolor=yellow\" " \
                   "%s " \
-                  "%s" % (self.fps, self.tempdir, frames, ptso, self.font, wtime.tm_hour, wtime.tm_min, int(wtime.tm_sec/10), self.ffmpeg_options, chunkfullpath)
+                  "%s" % (self.fps, self.tempdir, frames, self.ffmpeg_prefilter, ptso, self.font, wtime.tm_hour, wtime.tm_min, int(wtime.tm_sec/10), self.ffmpeg_options, chunkfullpath)
 
             self.log.debug("ffmpeg cmd: [%s]" % cmd)
             os.system(cmd)

@@ -109,6 +109,11 @@ if __name__ == "__main__":
             ffmpeg_options = config.get(section, "ffmpeg_options")
             log.info("[%s] - ffmpeg_options  [%s]" % (cam_name, ffmpeg_options ))
 
+            ffmpeg_prefilter = None
+            if config.has_option(section, "ffmpeg_prefilter"):
+                ffmpeg_prefilter = config.get(section, "ffmpeg_prefilter")
+                log.info("[%s] - ffmpeg_prefilter  [%s]" % (cam_name, ffmpeg_prefilter))
+
             # chunks in m3u8
             m3u8_chunks = config.getint(section, "m3u8_chunks")
             log.info("[%s] - m3u8_chunks [%d] " % (cam_name, m3u8_chunks ))
@@ -121,7 +126,8 @@ if __name__ == "__main__":
 
             cam = Cam(cam_name, url, source_type, raw, chunks_path, fps=fps, chunks=m3u8_chunks, chunk_size=chunk_size,
                       m3u8_path=m3u8_path, webpath_chunks_prefix=webpath_chunks_prefix, logger=log, tempdir=tempdir,
-                      curl_options=curl_options, font=font, ffmpeg_options=ffmpeg_options, hours=hist_size)
+                      curl_options=curl_options, font=font, ffmpeg_options=ffmpeg_options, hours=hist_size,
+                      ffmpeg_prefilter=ffmpeg_prefilter)
             cams.append(cam)
 
     # launch a Thread for each cam
